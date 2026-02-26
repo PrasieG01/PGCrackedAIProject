@@ -4,6 +4,9 @@ import { Indie_Flower } from "next/font/google";
 
 const indieFlower = Indie_Flower({ weight: "400", subsets: ["latin"] });
 
+// Ensure the page is dynamically rendered so fresh data is fetched on every request
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const { data: captions, error: captionsError } = await supabase.from("captions").select("*");
 
