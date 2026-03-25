@@ -2,6 +2,7 @@ import { createClient } from './utils/supabase/server'
 import CaptionCard from "./CaptionCard";
 import { Bangers } from "next/font/google";
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 // Load the Comic Book Font
 const bangers = Bangers({ weight: "400", subsets: ["latin"] });
@@ -12,12 +13,12 @@ export default async function Home() {
   const supabase = await createClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-  // 2. THE BOUNCER: If there is an error or no user is found, kick them to login
+  // If there is an error or no user is found, kick them to login
   if (userError || !user) {
     redirect('/login')
     }
 
-  // Grab everything from 'captions', PLUS the 'url' from the 'images' table
+  // Grab everything from 'captions', PLUS the 'url' from the 'images' tablee
   const { data: captions, error: captionsError } = await supabase
     .from("captions")
     .select("*, images(url)");
@@ -44,7 +45,7 @@ export default async function Home() {
         <form action={handleLogout}>
           <button type="submit" className="bg-white border-4 border-black px-4 py-2 font-bold uppercase flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all">
             <span className="hidden sm:inline">{user?.email}</span>
-            <span className="bg-red-500 text-white px-2 py-1 border-2 border-black">SIGN OUT 🚪</span>
+            <span className="bg-red-500 text-white px-2 py-1 border-2 border-black">SIGN OUT</span>
           </button>
         </form>
       </header>
@@ -57,14 +58,23 @@ export default async function Home() {
           <h2 className={`${bangers.className} text-3xl tracking-wide uppercase mb-2`}>Dashboard</h2>
           
           <div className="bg-[#fff9c4] border-4 border-black p-4 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-3 transition-transform hover:-translate-y-1">
-            📅 Daily Panels
+            <span className="text-black font-black uppercase tracking-widest text-lg">
+              Daily Panels
+            </span>
           </div>
           <div className="bg-[#ffccbc] border-4 border-black p-4 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-3 transition-transform hover:-translate-y-1">
-            ❤️ My Favorites
+            <span className="text-black font-black uppercase tracking-widest text-lg">
+              My Favorites
+            </span>
           </div>
-          <div className="bg-[#c8e6c9] border-4 border-black p-4 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-3 transition-transform hover:-translate-y-1">
-            📝 Submit A Comic
+          <Link href="/create">
+            <div className="bg-[#c8e6c9] border-4 border-black p-4 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center gap-3 transition-transform hover:-translate-y-1">
+            <span className="text-black font-black uppercase tracking-widest text-lg">
+              Submit a Comic
+            </span>
           </div>
+          </Link> 
+
         </aside>
 
         {/* COMIC GRID */}

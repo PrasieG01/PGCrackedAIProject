@@ -17,33 +17,34 @@ export default function CaptionCard({ caption }: { caption: any }) {
   const handleVote = async (type: 'up' | 'down') => {
     const voteValue = type === 'up' ? 1 : -1;
     
-    // 2. Clear any old reactions and set the new one
+    // UI Animations
     setReaction(null)
-    const reactionId = Date.now()
-    setReaction({ type, id: reactionId })
-    
-    // 3. Keep the reaction on the screen for a good amount of time (1.5 seconds)
+    setReaction({ type, id: Date.now() })
     setTimeout(() => setReaction(null), 1500)
 
-    // 4. Send to Supabase
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
       alert("You must be signed in to vote!")
-      setReaction(null) // Also clear the reaction if they can't vote
       return
     }
 
+    // Use .upsert() instead of .insert()
+    // We tell Supabase which columns to check for uniqueness
     const { error } = await supabase
       .from('caption_votes')
-      .insert({
+      .upsert({
         caption_id: captionId,
         profile_id: user.id,
         vote_value: voteValue,
+      }, { 
+        onConflict: 'caption_id, profile_id' // This tells Supabase what a "duplicate" looks like
       })
 
-    if (!error) {
+    if (error) {
+      console.error("Lab Error:", error.message)
+    } else {
       router.refresh()
     }
   }
@@ -61,13 +62,13 @@ export default function CaptionCard({ caption }: { caption: any }) {
             // Animates UPwards, grows slightly, and fades in
             animate={{ 
               opacity: 1, 
-              y: -40, // Keeps it near the buttons
+              y: -40, 
               scale: 1.1,
               transition: { 
-                type: 'spring', // Adds a comic-style 'bounce'
-                stiffness: 120, // Lower is softer, higher is Snappier
-                damping: 10, // Lower is more bouncy, higher is softer
-                duration: 0.6 // Over half a second for the initial pop!
+                type: 'spring', 
+                stiffness: 120, 
+                damping: 10, 
+                duration: 0.6 
               }
             }}
             // Smoothly fades out when the 1.5 second timeout hits
@@ -75,11 +76,8 @@ export default function CaptionCard({ caption }: { caption: any }) {
                 opacity: 0, 
                 transition: { duration: 0.3 } 
             }}
-            // Positions it right above the buttons
             className="absolute bottom-[60px] left-1/2 -translate-x-1/2 z-50 pointer-events-none"
           >
-            {/* 6. MODIFIED: Transparent text, still using the Bangers font (if loaded in layout) */}
-            {/* The text itself carries the color theme, no background box needed */}
             <div className={`font-black text-3xl md:text-4xl drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] ${reaction.type === 'up' ? 'text-yellow-400' : 'text-blue-400'}`}>
               {reaction.type === 'up' ? '😂 +1' : '😐 -1'}
             </div>
