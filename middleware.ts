@@ -31,8 +31,18 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+  // NEW LOGIC: Protect EVERYTHING except login and auth-callback
+  const isLoginPage = request.nextUrl.pathname.startsWith('/login')
+  const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+
+  if (!user && !isLoginPage && !isAuthPage) {
+    // If they aren't logged in, send them to login
     return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // If they ARE logged in and try to go to login page, send them to the lab
+  if (user && isLoginPage) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return supabaseResponse
